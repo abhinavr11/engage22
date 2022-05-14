@@ -22,7 +22,7 @@ if page == "Yep":
     st.text('Streamlit is **_really_ cool**.')
     st.markdown('</h1>',unsafe_allow_html=True)
     newSession()
-#hello
+
 else :
     placeholder.empty()
     
