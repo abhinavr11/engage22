@@ -5,8 +5,6 @@ class newSession:
 
     def __init__(self):
         self.st = st
-        self.run = True
-        self.btn = None
         self.startPg()
         
 

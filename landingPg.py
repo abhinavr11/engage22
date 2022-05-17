@@ -20,7 +20,7 @@ if page == "Yep":
     with placeholder.container():
                 
         st.title("Webcam Application")
-        run = st.checkbox('Run',value = True)
+        run = st.checkbox('Run',value = False)
         FRAME_WINDOW = st.image([])
         cam = cv2.VideoCapture(0)
         

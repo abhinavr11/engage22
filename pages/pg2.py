@@ -1,11 +1,22 @@
 import streamlit as st
 import cv2
+import json
+from json import JSONEncoder
+import requests
+import numpy as np
+
+class NumpyArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
+
 
 class continueSession:
 
     def __init__(self):
         self.st = st
-        self.face_cascade = cv2.CascadeClassifier('requirements/haarcascade_frontalface_default.xml')
+        self.url = 'http://127.0.0.1:5000/'
         self.startPg()
 
 
@@ -23,14 +34,16 @@ class continueSession:
         while monitor:
             ret, frame = cam.read()
             
+            
             try:
-                # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                # # Detect the faces
-                # faces = self.face_cascade.detectMultiScale(gray, 1.1, 4)
-                # # Draw the rectangle around each face
-                # for (x, y, w, h) in faces:
-                #     cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
+
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                numpyData = {"raw_img": frame}
+                encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+                res = requests.post(self.url, data = encodedNumpyData)
+
+                frame = np.asarray(json.loads(res.json()['results'])['processed_img']) 
             except:
                 continue
             
