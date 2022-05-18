@@ -39,10 +39,11 @@ def predict():
     print(np.asarray(data['raw_img']).shape)
 
     # predictions
-    output = detectFace(np.asarray(data['raw_img']).astype(np.uint8))
+    output,area = detectFace(np.asarray(data['raw_img']).astype(np.uint8))
     
     # send back to browser
-    numpyData = {"processed_img": output}
+    numpyData = {"processed_img": output,
+                 "area":np.asarray(area)}
     encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
     
     # return data 
