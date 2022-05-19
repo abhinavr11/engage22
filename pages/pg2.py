@@ -53,19 +53,6 @@ class continueSession:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 self.poseBuffer.append(frame)
                 
-                # if i == 10:
-                    
-                #     numpyData = {"raw_img": frame}
-                #     encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-                #     res = requests.post(self.url, data = encodedNumpyData)
-                #     resp = json.loads(res.json()['results'])
-                #     frame = np.asarray(resp['processed_img']) 
-                    
-                #     if resp['area'] > self.setupArea:
-                #         self.pos = self.wpos
-                #     else:
-                #         self.pos = self.cpos
-                #     i=0
             
             except:
                 continue
