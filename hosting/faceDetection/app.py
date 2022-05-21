@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, render_template
 import pickle
 import cv2
 import joblib 
-from helper import *
+from helperFace import *
 import json 
 import numpy as np
 from json import JSONEncoder
