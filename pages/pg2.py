@@ -7,6 +7,7 @@ import requests
 import numpy as np
 import collections
 import threading
+from PIL import Image , ImageStat
 
 class NumpyArrayEncoder(JSONEncoder):
     def default(self, obj):
@@ -24,7 +25,8 @@ class continueSession:
         self.wpos = cv2.imread('data/wpos.jpg')
         self.pos = cv2.imread('data/rpos.jpg')
         self.setupImg = cv2.imread('data/setupImg.jpg')
-        self.poseBuffer = collections.deque(maxlen=1)
+        self.brightness = 0
+        self.frameBuffer = collections.deque(maxlen=1)
         temp = self.getSetupArea(self.setupImg)
         print(temp)
         self.setupArea = temp
@@ -38,34 +40,36 @@ class continueSession:
         monitor = self.st.checkbox('Monitor',value = True)
         
         FRAME_WINDOW_TEMP = self.st.image([])
-        self.st.image(self.setupImg,width = 200)
+        self.bar = self.st.progress(0)
+        self.st.image(self.setupImg,width = 100)
         cam = cv2.VideoCapture(0)
         
         
         t1 = threading.Thread(target=self.poseThread)
+        t2 = threading.Thread(target=self.brightnessThread)
         t1.start()
-        #i = 0
+        t2.start()
+        
         while monitor:
-            ret, frame = cam.read()
-            
+            ret, frame = cam.read()    
             try:
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                self.poseBuffer.append(frame)
+                self.frameBuffer.append(frame)
                 
             
             except:
                 continue
+            self.bar.progress(self.brightness)
+            FRAME_WINDOW_TEMP.image([frame,self.pos],width= 300)
             
-            #i += 1
-            FRAME_WINDOW_TEMP.image([frame,self.pos])
-            
-            
+    
                
         else:            
-            self.st.write('Photo Taken')
+            self.st.write('We can show the statistics here')
           
         t1.join()
+        t2.join()
         
     def getSetupArea(self,img):
         numpyData = {"raw_img": img}
@@ -76,9 +80,9 @@ class continueSession:
 
     def poseThread(self):
         while(True):
-            if self.poseBuffer:
+            if self.frameBuffer:
                
-                numpyData = {"raw_img": self.poseBuffer[0]}
+                numpyData = {"raw_img": self.frameBuffer[0]}
                 encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
                 res = requests.post(self.url, data = encodedNumpyData)
                 if res.status_code == 200:
@@ -96,4 +100,15 @@ class continueSession:
 
             else:
                 continue
+
+    def brightnessThread(self):
+
+        while True:
+            if self.frameBuffer:
+            
+                self.brightness = ImageStat.Stat(Image.fromarray(np.asarray(self.frameBuffer[0]))).mean[0]/255
+
+                
+
+
 
