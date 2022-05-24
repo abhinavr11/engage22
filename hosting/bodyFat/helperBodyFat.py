@@ -6,11 +6,13 @@ from tensorflow.keras.models import Sequential
 from keras.layers import Input, Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, LeakyReLU
 import pandas as pd
 import cv2
+import os
+
 
 model = tf.keras.models.load_model("model.h5")                     #For BMI prediction
 model2 = tf.keras.models.load_model("model2.h5")                   #For Age prediction
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-
+   
 def predictBodyFat(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # Detect the faces
@@ -30,3 +32,4 @@ def predictBodyFat(image):
     body_fat = 1.2*bmi + 0.23*age - 5.4
 
     return body_fat
+
