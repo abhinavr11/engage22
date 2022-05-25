@@ -7,8 +7,18 @@ from keras.layers import Input, Dense, Dropout, Flatten, Conv2D, MaxPooling2D, B
 import pandas as pd
 import cv2
 import os
+import subprocess
 
-
+for (root,dirs,files) in os.walk(os.getcwd(), topdown=True):
+        if 'model.h5' not in files:
+            subprocess.run(["gdown", "1VdNkNtdlyr6MK-Fox94bqyrBO50vhTlo"]) 
+        else:
+            print('found model.h5')
+        if 'model2.h5' not in  files:
+            subprocess.run(["gdown","1ndsctNnxGWYUT26nQ8xsa_6mshBZ9xrV"])
+        else:
+            print('found model2.h5')
+        break
 model = tf.keras.models.load_model("model.h5")                     #For BMI prediction
 model2 = tf.keras.models.load_model("model2.h5")                   #For Age prediction
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')

@@ -7,6 +7,7 @@ import requests
 import numpy as np
 import collections
 import threading
+import time
 from PIL import Image , ImageStat
 
 class NumpyArrayEncoder(JSONEncoder):
@@ -22,6 +23,7 @@ class continueSession:
         self.st = st
         self.urlFace = 'http://127.0.0.1:5000/'
         self.urlEye = 'http://127.0.0.1:5050/'
+        self.urlFat = 'http://127.0.0.1:5100/'
         self.cpos = cv2.imread('data/rpos.jpg')
         self.wpos = cv2.imread('data/wpos.jpg')
         self.pos = cv2.imread('data/rpos.jpg')
@@ -51,9 +53,11 @@ class continueSession:
         t1 = threading.Thread(target=self.poseThread)
         t2 = threading.Thread(target=self.brightnessThread)
         t3 = threading.Thread(target=self.gazeTrackerThread)
+        t4 = threading.Thread(target=self.bodyFatThread)
         t1.start()
         t2.start()
         t3.start()
+        t4.start()
         
         while monitor:
             ret, frame = cam.read()    
@@ -76,6 +80,7 @@ class continueSession:
         t1.join()
         t2.join()
         t3.join()
+        t4.join()
 
 
 
@@ -146,5 +151,23 @@ class continueSession:
                 continue
 
 
+    def bodyFatThread(self):
+        while(True):
+            time.sleep(10)
+            if self.frameBuffer:
+               
+                numpyData = {"raw_img": self.frameBuffer[0]}
+                encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+                res = requests.post(self.urlFat, data = encodedNumpyData)
+                if res.status_code == 200:
+                    resp = res.json()['results']
+                else:
+                    continue
+                
+                resp['bodyFat'][0]
+                    
+
+            else:
+                continue
 
 

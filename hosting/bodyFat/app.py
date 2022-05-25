@@ -8,11 +8,14 @@ import numpy as np
 from json import JSONEncoder
 import warnings
 warnings.filterwarnings('ignore')
+import subprocess,os
+
 #from Model import *
 
 # load model
 if __name__=='__main__':
     pass
+
     
 # app
 app = Flask(__name__)
