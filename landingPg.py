@@ -17,6 +17,7 @@ with placeholder.container():
 placeholder.empty()
 
 if page == "Yep": 
+    
     with placeholder.container():
                 
         st.title("Webcam Application")
@@ -32,7 +33,7 @@ if page == "Yep":
                 continue
             cv2.imwrite('data/setupImg.jpg',frame) 
             FRAME_WINDOW.image(frame)
-               
+            
         else:            
             st.write('Photo Taken')
             placeholder.empty()       

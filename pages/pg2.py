@@ -8,7 +8,11 @@ import numpy as np
 import collections
 import threading
 import time
+import pymongo
 from PIL import Image , ImageStat
+from datetime import datetime, timedelta
+
+FRAMES_PROCESSED = 20
 
 class NumpyArrayEncoder(JSONEncoder):
     def default(self, obj):
@@ -21,6 +25,8 @@ class continueSession:
 
     def __init__(self):
         self.st = st
+        self.myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+        self.mydb = self.myclient['masterdatabase']
         self.urlFace = 'http://127.0.0.1:5000/'
         self.urlEye = 'http://127.0.0.1:5050/'
         self.urlFat = 'http://127.0.0.1:5100/'
@@ -35,6 +41,11 @@ class continueSession:
         self.frameBuffer = collections.deque(maxlen=1)
         temp = self.getSetupArea(self.setupImg)
         self.setupArea = temp
+        self.sessionTime = datetime.now()
+        self.poseVar = np.zeros(3)
+        self.fatVar = np.zeros(2)
+        self.lightVar = np.zeros(2)
+        self.focusVar = np.zeros(3)
         
 
         self.startPg()
@@ -44,6 +55,7 @@ class continueSession:
         self.st.title("Webcam Application")
         monitor = self.st.checkbox('Monitor',value = True)
         
+        FRAME_TEXT_TEMP = st.text('')
         FRAME_WINDOW_TEMP = self.st.image([])
         self.bar = self.st.progress(0)
         self.st.image(self.setupImg,width = 100)
@@ -71,6 +83,8 @@ class continueSession:
                 continue
             self.bar.progress(self.brightness)
             FRAME_WINDOW_TEMP.image([frame,self.pos,self.eyePos],width= 300)
+            FRAME_TEXT_TEMP.text(str(datetime.now()-self.sessionTime)) 
+            
             
     
                
@@ -94,6 +108,7 @@ class continueSession:
         return resp['area']
 
     def poseThread(self):
+        
         while(True):
             if self.frameBuffer:
                
@@ -108,10 +123,22 @@ class continueSession:
                 
                 if resp['area'] > self.setupArea:
                     self.pos = self.wpos
+                    self.poseVar[0] += 1
+                    self.poseVar[2] += 1
                 else:
                     self.pos = self.cpos
+                    self.poseVar[0] += 1
+                    self.poseVar[1] += 1
                 
-                
+                if self.poseVar[0] >= FRAMES_PROCESSED:
+                    col = self.mydb['Posture']
+                    dat ={'time':datetime.now(),
+                    'right_pose':self.poseVar[1],
+                    'wrong_pose':self.poseVar[2],
+                    'total_reading':self.poseVar[0]
+                    }
+                    _ = col.insert_one(dat)
+                    self.poseVar = np.zeros(3)
 
             else:
                 continue
@@ -122,6 +149,20 @@ class continueSession:
             if self.frameBuffer:
             
                 self.brightness = ImageStat.Stat(Image.fromarray(np.asarray(self.frameBuffer[0]))).mean[0]/255
+
+                self.lightVar[0] += 1
+                self.lightVar[1] += self.brightness
+
+                if self.lightVar[0] >= FRAMES_PROCESSED:
+                    col = self.mydb['Luminosity']
+                    dat ={'time':datetime.now(),
+                    'brightness':self.lightVar[1],
+                    'total_reading':self.lightVar[0]
+                    }
+                    _ = col.insert_one(dat)
+                    self.lightVar = np.zeros(2)
+
+            
             else:
                 continue
                 
@@ -142,10 +183,24 @@ class continueSession:
 
                 if resp['eyePos'][0][0] != 'CENTRE' and  resp['eyePos'][0][1] != 'CENTRE':
                     self.eyePos = self.eyePosD
+                    self.focusVar[0] += 1
+                    self.focusVar[2] += 1
+
                 else:
                     self.eyePos = self.eyePosW
-                
-                
+                    self.focusVar[0] += 1
+                    self.focusVar[1] += 1
+
+                if self.focusVar[0] >= FRAMES_PROCESSED:
+                    col = self.mydb['Attention']
+                    dat ={'time':datetime.now(),
+                    'focused':self.focusVar[1],
+                    'not_focused':self.focusVar[2],
+                    'total_reading':self.focusVar[0]
+                    }
+                    _ = col.insert_one(dat)
+                    self.focusVar = np.zeros(3)
+
 
             else:
                 continue
@@ -153,7 +208,7 @@ class continueSession:
 
     def bodyFatThread(self):
         while(True):
-            time.sleep(10)
+            time.sleep(5)
             if self.frameBuffer:
                
                 numpyData = {"raw_img": self.frameBuffer[0]}
@@ -164,7 +219,17 @@ class continueSession:
                 else:
                     continue
                 
-                resp['bodyFat'][0]
+                self.fatVar[0] += 1
+                self.fatVar[1] += resp['bodyFat'][0]
+
+                if self.fatVar[0] >= FRAMES_PROCESSED:
+                    col = self.mydb['BodyFat']
+                    dat ={'time':datetime.now(),
+                    'fat':self.fatVar[1],
+                    'total_reading':self.fatVar[0]
+                    }
+                    _ = col.insert_one(dat)
+                    self.fatVar = np.zeros(2)
                     
 
             else:
