@@ -3,25 +3,58 @@ from pages.pg1 import newSession
 from pages.pg2 import continueSession
 import streamlit as st
 import time
+import pymongo
+import os
 
+
+def cleanDatabase():
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    mydb = myclient["masterdatabase"]
+    dbs = ['Attention','Luminosity','Posture'] #removed BodyFat for now
+    for db in dbs:
+        mycol = mydb[db]
+
+        mycol.drop()
+
+        print(mydb.list_collection_names())   
+
+def cleanImgs():
+    if os.path.isfile("D:\Engage\streamlit\data\setupImg.jpg"): 
+        os.remove("D:\Engage\streamlit\data\setupImg.jpg")
+    else:
+        print("The file does not exist")
+    
 
 
 placeholder = st.empty()
 userImg = None
 with placeholder.container():
-    st.text("landing page")
-
-    page = st.radio("Start A Fresh Session",("Yep", "Nope"))
     
-    time.sleep(1)
+    st.title("Introducing CAMFORT 1.0.0")
+    col1, col2 = st.columns(2)
+    with col1:
+        page = st.radio("Start A Fresh Session",("Yep", "Nope"))
+    with col2:
+        st.image("data/logo.jpg")
+    
+    time.sleep(5)
+st.snow()
 placeholder.empty()
 
+
 if page == "Yep": 
+    #cleanDatabase()
+    #print('database cleaned')
     
+    #cleanImgs()
+    
+    #print('Setup Image cleaned')
+    #print('New session started')
+
     with placeholder.container():
                 
-        st.title("Webcam Application")
-        run = st.checkbox('Run',value = False)
+        st.title("CamFort")
+        run = st.checkbox('Click a picture in your ideal working state. Don\'t forget to Smile! ',value = True)
         FRAME_WINDOW = st.image([])
         cam = cv2.VideoCapture(0)
         
@@ -37,8 +70,10 @@ if page == "Yep":
         else:            
             st.write('Photo Taken')
             placeholder.empty()       
+    #st.snow()
     continueSession()
 else :
-    placeholder.empty()    
+    placeholder.empty()
+    #st.snow()    
     continueSession()
 

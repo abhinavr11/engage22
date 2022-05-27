@@ -9,6 +9,7 @@ import collections
 import threading
 import time
 import pymongo
+import pandas as pd
 from PIL import Image , ImageStat
 from datetime import datetime, timedelta
 
@@ -51,14 +52,13 @@ class continueSession:
         self.startPg()
 
     def startPg(self):
-        self.st.text("page 2 starting")
-        self.st.title("Webcam Application")
+        self.st.title("CamFort")
         monitor = self.st.checkbox('Monitor',value = True)
         
         FRAME_TEXT_TEMP = st.text('')
         FRAME_WINDOW_TEMP = self.st.image([])
         self.bar = self.st.progress(0)
-        self.st.image(self.setupImg,width = 100)
+        #self.st.image(self.setupImg,width = 100)
         cam = cv2.VideoCapture(0)
         
         
@@ -89,8 +89,24 @@ class continueSession:
     
                
         else:            
-            self.st.write('We can show the statistics here')
-          
+            self.st.title('The Boring statistics')
+            myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+            mydb = myclient['masterdatabase']
+
+            with st.spinner('Evaluating Statistics'):
+    
+
+                showFat = self.__getBodyFatDF(pd.DataFrame(list(mydb['BodyFat'].find())))
+                showFocus = self.__getAttentionDF(pd.DataFrame(list(mydb['Attention'].find())))
+                showBright = self.__getLuminosityDF(pd.DataFrame(list(mydb['Luminosity'].find())))
+                showPose = self.__getPostureDF(pd.DataFrame(list(mydb['Posture'].find())))
+
+                self.st.area_chart(showFat)
+                self.st.bar_chart(showFocus)
+                self.st.line_chart(showBright)
+                self.st.bar_chart(showPose)
+            st.success('Done!')
+        
         t1.join()
         t2.join()
         t3.join()
@@ -153,7 +169,7 @@ class continueSession:
                 self.lightVar[0] += 1
                 self.lightVar[1] += self.brightness
 
-                if self.lightVar[0] >= FRAMES_PROCESSED:
+                if self.lightVar[0] >= FRAMES_PROCESSED**2:
                     col = self.mydb['Luminosity']
                     dat ={'time':datetime.now(),
                     'brightness':self.lightVar[1],
@@ -208,7 +224,7 @@ class continueSession:
 
     def bodyFatThread(self):
         while(True):
-            time.sleep(5)
+            #time.sleep(10)
             if self.frameBuffer:
                
                 numpyData = {"raw_img": self.frameBuffer[0]}
@@ -236,3 +252,54 @@ class continueSession:
                 continue
 
 
+    def __getBodyFatDF(self,data):
+        showFat = {
+            'Time':[dt[1]['time'] for dt in data.iterrows()],
+            'Average Fat':[dt[1]['fat']/dt[1]['total_reading'] for dt in data.iterrows()]
+        }
+
+        return pd.DataFrame(showFat).set_index('Time')
+
+    def __getAttentionDF(self,data):
+        timeDelta = []
+        focused = []
+        nfocused = []
+        for idx,dt in data.iterrows():
+            if idx == 0:
+                continue
+            timeDelta.append((dt['time']-data.loc[idx-1]['time']).seconds)
+            focused.append(100*dt['focused']/dt['total_reading'])
+            nfocused.append(100*dt['not_focused']/dt['total_reading'])
+            
+        showFocus = {
+            'Time':timeDelta,
+            'Focused %':focused,
+            'Not Focused %':nfocused
+        } 
+        return pd.DataFrame(showFocus).set_index('Time')
+
+    def __getLuminosityDF(self,data):
+        showBright = {
+            'Time':[dt[1]['time'] for dt in data.iterrows()],
+            'Average Brightness':[dt[1]['brightness']/dt[1]['total_reading'] for dt in data.iterrows()]
+        }
+
+        return pd.DataFrame(showBright).set_index('Time')
+
+    def __getPostureDF(self,data):
+        timeDelta = []
+        rposePer = []
+        wposePer = []
+        for idx,dt in data.iterrows():
+            if idx == 0:
+                continue
+            timeDelta.append((dt['time']-data.loc[idx-1]['time']).seconds)
+            rposePer.append(100*dt['right_pose']/dt['total_reading'])
+            wposePer.append(100*dt['wrong_pose']/dt['total_reading'])
+            
+        showPose = {
+            'Time':timeDelta,
+            'Correct Pose %':rposePer,
+            'Wrong Pose %':wposePer
+        } 
+        return pd.DataFrame(showPose).set_index('Time')

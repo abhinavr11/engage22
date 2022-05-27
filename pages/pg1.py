@@ -9,7 +9,7 @@ class newSession:
         
 
     def startPg(self):
-        self.st.text("Page 1 starting")
+        self.st.text("Sit Tight Loading ...")
         
 
         
