@@ -6,7 +6,7 @@ import time
 import pymongo
 import os
 
-
+#function to help clean out the MongoDB database at the time of starting a new session
 def cleanDatabase():
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["masterdatabase"]
@@ -18,6 +18,7 @@ def cleanDatabase():
 
         print(mydb.list_collection_names())   
 
+#Function to clean the image of user at the start of new session 
 def cleanImgs():
     if os.path.isfile("D:\Engage\streamlit\data\setupImg.jpg"): 
         os.remove("D:\Engage\streamlit\data\setupImg.jpg")
@@ -25,7 +26,7 @@ def cleanImgs():
         print("The file does not exist")
     
 
-
+#making a container to chelp clear out content afterwards when not in use
 placeholder = st.empty()
 userImg = None
 with placeholder.container():
@@ -47,13 +48,12 @@ with placeholder.container():
 st.snow()
 placeholder.empty()
 
-
+#To run different classes depending on the user need for a new session
 if page == "Yep": 
     #cleanDatabase()
     #print('database cleaned')
     #cleanImgs()
     #print('Setup Image cleaned')
-    #print('New session started')
 
     with placeholder.container():
                 

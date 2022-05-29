@@ -14,15 +14,16 @@ import pandas as pd
 from PIL import Image , ImageStat
 from datetime import datetime, timedelta
 
-FRAMES_PROCESSED = 20
+FRAMES_PROCESSED = 20    #Kept as constant the number of frames that need to be processed before data is pushed to the database
 
+#Class to help encode images before they are sent to the hosted models
 class NumpyArrayEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-
+#Main class of the session that is being continued
 class continueSession:
 
     def __init__(self):
@@ -137,7 +138,7 @@ class continueSession:
 
 
 
-
+    #Functions of the class , names are explanatory of the work they do
         
     def getSetupArea(self,img):
         numpyData = {"raw_img": img}
@@ -251,7 +252,7 @@ class continueSession:
 
     def bodyFatThread(self):
         while(True):
-            #time.sleep(10)
+            time.sleep(3600)                #Body fat prections are measured and stored after an hour
             if self.frameBuffer:
                
                 numpyData = {"raw_img": self.frameBuffer[0]}

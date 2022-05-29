@@ -14,6 +14,6 @@ class newSession:
 
     def stopPg(self):
         self.run = False
-        #self.FRAME_WINDOW = None
+        
 
 
