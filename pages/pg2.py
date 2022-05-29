@@ -1,4 +1,5 @@
 from time import sleep
+from turtle import width
 import streamlit as st
 import cv2
 import json
@@ -31,13 +32,15 @@ class continueSession:
         self.urlFace = 'http://127.0.0.1:5000/'
         self.urlEye = 'http://127.0.0.1:5050/'
         self.urlFat = 'http://127.0.0.1:5100/'
-        self.cpos = cv2.imread('data/rpos.jpg')
-        self.wpos = cv2.imread('data/wpos.jpg')
-        self.pos = cv2.imread('data/rpos.jpg')
-        self.eyePosW = cv2.imread('data/working.jpg')
-        self.eyePosD = cv2.imread('data/dreaming.jpg')
+        self.cpos = cv2.imread('data/rpos.png')
+        self.wpos = cv2.imread('data/wpos.png')
+        self.pos = cv2.imread('data/rpos.png')
+        self.eyePosW = cv2.imread('data/working.png')
+        self.eyePosD = cv2.imread('data/dreaming.png')
         self.setupImg = cv2.imread('data/setupImg.jpg')
-        self.eyePos = cv2.imread('data/working.jpg')
+        self.eyePos = cv2.imread('data/working.png')
+        self.pose_text = 'Maintain this posture'
+        self.eye_text = 'Your eyes are on the goal'
         self.brightness = 0
         self.frameBuffer = collections.deque(maxlen=1)
         temp = self.getSetupArea(self.setupImg)
@@ -52,12 +55,28 @@ class continueSession:
         self.startPg()
 
     def startPg(self):
-        self.st.title("CamFort")
+        col1, col2 = self.st.columns(2)
+        with col1:
+            self.st.title("CamFort")
+            FRAME_TEXT_TEMP = self.st.text('')
+       
+        with col2:
+            self.st.header("👩‍💻WORK RIGHT🧑‍💻")
+            
         monitor = self.st.checkbox('Monitor',value = True)
-        
-        FRAME_TEXT_TEMP = st.text('')
-        FRAME_WINDOW_TEMP = self.st.image([])
+        FRAME_WINDOW_TEMP_CAM = self.st.image([])
+        col1, col2 = self.st.columns(2)
+        with col1:
+            self.st.header('Current Posture')
+            FRAME_WINDOW_TEMP_POSE = self.st.image([])
+            FRAME_TEXT_TEMP_POSE = self.st.text('')
+        with col2:
+            self.st.header('Eye Tracker')
+            FRAME_WINDOW_TEMP_EPOS = self.st.image([])
+            FRAME_TEXT_TEMP_EPOS = self.st.text('')
+        self.st.header('Lighting')
         self.bar = self.st.progress(0)
+        self.st.text('-----------(Low Lighting)-------------Optimum-------------(Bright Lighting)--------')
         #self.st.image(self.setupImg,width = 100)
         cam = cv2.VideoCapture(0)
         
@@ -82,8 +101,12 @@ class continueSession:
             except:
                 continue
             self.bar.progress(self.brightness)
-            FRAME_WINDOW_TEMP.image([frame,self.pos,self.eyePos],width= 300)
-            FRAME_TEXT_TEMP.text(str(datetime.now()-self.sessionTime)) 
+            FRAME_WINDOW_TEMP_CAM.image([frame],width= 400)
+            FRAME_WINDOW_TEMP_POSE.image([self.pos],width= 300)
+            FRAME_WINDOW_TEMP_EPOS.image([self.eyePos],width= 300)
+            FRAME_TEXT_TEMP.text('Session Runtime ⏲️ '+str(datetime.now()-self.sessionTime)) 
+            FRAME_TEXT_TEMP_EPOS.text(self.eye_text)
+            FRAME_TEXT_TEMP_POSE.text(self.pose_text)
             
             
     
@@ -139,10 +162,12 @@ class continueSession:
                 
                 if resp['area'] > self.setupArea:
                     self.pos = self.wpos
+                    self.pose_text = 'Straighten your back please!'
                     self.poseVar[0] += 1
                     self.poseVar[2] += 1
                 else:
                     self.pos = self.cpos
+                    self.pose_text = 'Maintain this posture'
                     self.poseVar[0] += 1
                     self.poseVar[1] += 1
                 
@@ -199,11 +224,13 @@ class continueSession:
 
                 if resp['eyePos'][0][0] != 'CENTRE' and  resp['eyePos'][0][1] != 'CENTRE':
                     self.eyePos = self.eyePosD
+                    self.eye_text = 'Don\'t get distracted'
                     self.focusVar[0] += 1
                     self.focusVar[2] += 1
 
                 else:
                     self.eyePos = self.eyePosW
+                    self.eye_text = 'Your eyes are on the goal'
                     self.focusVar[0] += 1
                     self.focusVar[1] += 1
 

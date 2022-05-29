@@ -1,5 +1,5 @@
 import streamlit as st
-import cv2
+
 
 class newSession:
 
@@ -10,8 +10,6 @@ class newSession:
 
     def startPg(self):
         self.st.text("Sit Tight Loading ...")
-        
-
         
 
     def stopPg(self):

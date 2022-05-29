@@ -33,7 +33,13 @@ with placeholder.container():
     st.title("Introducing CAMFORT 1.0.0")
     col1, col2 = st.columns(2)
     with col1:
+        st.text('\n')
+        st.text('\n')
         page = st.radio("Start A Fresh Session",("Yep", "Nope"))
+        st.text('\n')
+        st.text('\n')
+        st.text('\n')
+        st.text('*The selected option will be chosen after \n 5 seconds')
     with col2:
         st.image("data/logo.jpg")
     
@@ -45,9 +51,7 @@ placeholder.empty()
 if page == "Yep": 
     #cleanDatabase()
     #print('database cleaned')
-    
     #cleanImgs()
-    
     #print('Setup Image cleaned')
     #print('New session started')
 
@@ -70,10 +74,8 @@ if page == "Yep":
         else:            
             st.write('Photo Taken')
             placeholder.empty()       
-    #st.snow()
     continueSession()
 else :
-    placeholder.empty()
-    #st.snow()    
+    placeholder.empty()    
     continueSession()
 
